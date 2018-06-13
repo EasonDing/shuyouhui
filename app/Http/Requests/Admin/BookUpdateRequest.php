@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Http\Requests\Admin;
+
+use App\Http\Requests\FormatErrorRequest;
+
+class BookUpdateRequest extends FormatErrorRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     *
+     * @return bool
+     */
+    public function authorize()
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public function rules()
+    {
+        return [
+            'title'     => 'required',
+            'author'     => 'required',
+            'publisher'     => 'required',
+            'image'     => 'required',
+            'summary'     => 'required',
+            'isbn'     => 'required',
+            'price'     => 'required',
+        ];
+    }
+}

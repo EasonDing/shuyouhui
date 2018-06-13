@@ -1,0 +1,24 @@
+<?php
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        Model::unguard();
+//        $this->call('UserTableSeeder');
+//        $this->call('RoleTableSeeder');
+        $this->call('PermissionTableSeeder');
+        $this->call('PermissionRoleTableSeeder');
+//        $this->call('RoleUserTableSeeder');
+//        $this->call('NumTableSeeder');
+//        $this->call('CalendarTableSeeder');
+    }
+}

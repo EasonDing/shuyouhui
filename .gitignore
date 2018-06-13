@@ -1,0 +1,15 @@
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+/.idea
+/.vagrant
+Homestead.json
+Homestead.yaml
+.env
+/public/laravel-u-editor
+*/.DS_Store
+.DS_Store
+public/mix-manifest.json
+storage/exports/
