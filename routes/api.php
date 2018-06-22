@@ -313,6 +313,8 @@ Route::group(['middleware' => ['auth:api', 'role:bar'], 'prefix' => '/bar'], fun
  */
 //支付回调
 Route::post('/mini/program/notify', 'Api\MiniProgram\WeiXinPayController@notify');
+//检查用户是否为vip
+Route::any('/mini/user/check_vip', 'Api\MiniProgram\UsersController@check_vip');
 Route::group(['prefix' => '/mini/program'], function () {
 
     //小程序 Auth
@@ -325,12 +327,15 @@ Route::group(['prefix' => '/mini/program'], function () {
 
         //检查用户是否关联数据
         Route::post('/checkUserInfo', 'Api\MiniProgram\AuthsController@checkUserInfo');
+
         //创建用户记录
         Route::post('/store', 'Api\MiniProgram\AuthsController@store');
         Route::post('/update', 'Api\MiniProgram\AuthsController@update');
 
         //用户信息
         Route::group(['prefix' => '/user'], function () {
+
+
             Route::post('/show', 'Api\MiniProgram\UsersController@show');
             Route::post('/bindPhone', 'Api\MiniProgram\UsersController@bindPhone');
             Route::post('/checkBindPhone', 'Api\MiniProgram\UsersController@checkBindPhone');

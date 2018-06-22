@@ -187,10 +187,14 @@ class AuthsController extends Controller
     public function checkUserInfo()
     {
         $userId = Auth::user()->user_id;
+        #$is_vip = Auth::user();
+        #dump($is_vip);exit;
         if ($userId) {
             return $this->withCode(200)->withData(['user_id' => $userId])->response('用户数据已关联');
         }
 
-        return $this->withCode(500)->response('用户数据未关联');
+
     }
+
+
 }

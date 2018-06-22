@@ -8,6 +8,7 @@ use App\Entities\WeiXinUser;
 use App\Http\Controllers\Controller;
 use App\Http\Utils\Configuring;
 use Carbon\Carbon;
+use http\Env\Response;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -59,6 +60,28 @@ class UsersController extends Controller
         }
 
         return $this->withCode(500)->withData($user)->response('用户信息获取失败');
+
+    }
+
+    public function check_vip(Request $request)
+    {
+        $userId = $request->post('UserId');
+        $is_vip = User::where(['userid'=>$userId])->first();
+        if(empty($is_vip) ){
+
+           return $this->withCode(500)->response('用户信息不存在');
+
+        }else{
+            if($is_vip->is_vip == 1){
+                return $this->withCode(200)->withData($is_vip->is_vip)->response('success');
+            }else{
+                return $this->withCode(200)->response('success');
+            }
+
+
+        }
+
+
 
     }
 
