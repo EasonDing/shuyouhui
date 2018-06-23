@@ -22,7 +22,6 @@ use App\Http\Requests\UserUpdateRequest;
 use App\Repositories\Api\MiniProgram\UserRepository;
 use App\Validators\Api\MiniProgram\UserValidator;
 
-
 class UsersController extends Controller
 {
 
@@ -63,6 +62,11 @@ class UsersController extends Controller
 
     }
 
+    /**
+     * 检查是否为书友会会员
+     * @param Request $request
+     * @return mixed
+     */
     public function check_vip(Request $request)
     {
         $userId = $request->post('UserId');
@@ -77,13 +81,45 @@ class UsersController extends Controller
             }else{
                 return $this->withCode(200)->response('success');
             }
-
-
         }
 
-
-
     }
+
+
+    /*
+     * 我邀请的好友
+     */
+    public function invite_user(Request $request)
+    {
+        $userId = $request->post('UserId');
+        $type = $request->post('t_type');
+        $all_info = DB::table('invite_vip')
+            ->join('weixin_users', 'invite_vip.invited_id', '=', 'weixin_users.user_id')
+            ->where(['invite_vip.invite_id'=>$userId])
+            ->select('weixin_users.nickname', 'weixin_users.user_id','weixin_users.headimgurl','weixin_users.province','weixin_users.city')
+            ->get();
+        $info_array = $all_info->toArray();
+        $all_number = count($info_array) > 0 ? count($info_array):0;
+        if($type == 'my'){
+            $all_income = DB::table('invite_vip')->where(['invite_id'=>$userId])->sum('reward');
+
+            $all_income = number_format($all_number,2);
+            $data = [
+                'income'=>$all_income,
+                'number'=>$all_number,
+                'info'=>$all_info
+            ];
+        }else{
+            $u_info = DB::table('weixin_users')->where(['user_id'=>$userId])->first();
+            $data = [
+                'u_info'=>$u_info,
+                'number'=>$all_number,
+                'info'=>$all_info
+            ];
+        }
+        return $this->withCode(200)->withData($data)->response('success');
+    }
+
 
     /**
      * 绑定手机号

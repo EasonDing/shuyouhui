@@ -315,6 +315,8 @@ Route::group(['middleware' => ['auth:api', 'role:bar'], 'prefix' => '/bar'], fun
 Route::post('/mini/program/notify', 'Api\MiniProgram\WeiXinPayController@notify');
 //检查用户是否为vip
 Route::any('/mini/user/check_vip', 'Api\MiniProgram\UsersController@check_vip');
+//获取邀请列表 奖励金 邀请人数
+Route::any('/mini/user/invite_user', 'Api\MiniProgram\UsersController@invite_user');
 Route::group(['prefix' => '/mini/program'], function () {
 
     //小程序 Auth
