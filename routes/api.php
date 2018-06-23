@@ -317,6 +317,10 @@ Route::post('/mini/program/notify', 'Api\MiniProgram\WeiXinPayController@notify'
 Route::any('/mini/user/check_vip', 'Api\MiniProgram\UsersController@check_vip');
 //获取邀请列表 奖励金 邀请人数
 Route::any('/mini/user/invite_user', 'Api\MiniProgram\UsersController@invite_user');
+//vip购买订单创建
+Route::any('/mini/user/order_vip', 'Api\MiniProgram\UsersController@order_vip');
+//支付成功订单修改
+Route::any('/mini/user/update_order', 'Api\MiniProgram\UsersController@update_order');
 Route::group(['prefix' => '/mini/program'], function () {
 
     //小程序 Auth

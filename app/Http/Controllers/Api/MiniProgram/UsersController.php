@@ -21,6 +21,8 @@ use App\Http\Requests\UserCreateRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Repositories\Api\MiniProgram\UserRepository;
 use App\Validators\Api\MiniProgram\UserValidator;
+use App\Repositories\Api\MiniProgram\BuyOrderRepository;
+use App\Validators\Api\MiniProgram\BuyOrderValidator;
 
 class UsersController extends Controller
 {
@@ -96,21 +98,23 @@ class UsersController extends Controller
         $all_info = DB::table('invite_vip')
             ->join('weixin_users', 'invite_vip.invited_id', '=', 'weixin_users.user_id')
             ->where(['invite_vip.invite_id'=>$userId])
-            ->select('weixin_users.nickname', 'weixin_users.user_id','weixin_users.headimgurl','weixin_users.province','weixin_users.city')
+            ->select('weixin_users.id','weixin_users.nickname', 'weixin_users.user_id','weixin_users.headimgurl','weixin_users.province','weixin_users.city')
             ->get();
         $info_array = $all_info->toArray();
         $all_number = count($info_array) > 0 ? count($info_array):0;
+        $u_info = DB::table('weixin_users')->where(['user_id'=>$userId])->first();
         if($type == 'my'){
             $all_income = DB::table('invite_vip')->where(['invite_id'=>$userId])->sum('reward');
 
-            $all_income = number_format($all_number,2);
+            $all_income = $all_income/100;
             $data = [
                 'income'=>$all_income,
                 'number'=>$all_number,
-                'info'=>$all_info
+                'info'=>$all_info,
+                'u_info'=>$u_info
             ];
         }else{
-            $u_info = DB::table('weixin_users')->where(['user_id'=>$userId])->first();
+
             $data = [
                 'u_info'=>$u_info,
                 'number'=>$all_number,
@@ -120,6 +124,106 @@ class UsersController extends Controller
         return $this->withCode(200)->withData($data)->response('success');
     }
 
+    /**
+     * 订单创建
+     * @param Request $request
+     * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
+     */
+    public function order_vip(Request $request)
+    {
+        try {
+            $invite_id = $request->post('invited_id');
+            $userId = $request->post('userId');
+            $user = Auth::user();
+            $number = 'BK' . uniqid();//订单号
+            //判断两个人是否已经创建过订单
+            $is_exist = DB::table('invite_vip_order')->where(['userid'=> $userId,'invited_id'=> $invite_id])->first();
+            if($is_exist){
+                #dump($is_exist);exit;
+                $data = get_object_vars($is_exist);
+                return $this->withCode(200)->withData($data)->response('订单已存在！');
+            }else{
+                $data = [
+                    'order_number'=>$number ,
+                    'userid'=> $userId,
+                    'invited_id'=> $invite_id,
+                    'order_type'=> '会员开通',
+                    'price'=> 9.9,//单位分
+                    'create_time'=> date('Y-m-d H-i-s',time())
+                ];
+
+                $result = DB::table('invite_vip_order')->insert($data);
+
+
+                if ($result) {
+
+                    return $this->withCode(200)->withData($data)->response('订单创建成功！');
+                }
+
+                return $this->withCode(500)->withData($data)->response('订单创建失败！');
+            }
+
+
+        } catch (\Exception $e) {
+            $errors = [
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine()
+            ];
+
+            return $this->withCode(500)->withData($errors)->response('服务器错误');
+        }
+    }
+
+    public function update_order(Request $request)
+    {
+        try{
+            $order_number = $request->post('order');
+            $invite_id = $request->post('invited_id');
+            $userId = $request->post('userId');
+            DB::beginTransaction();
+            $invite_data = [
+                'invite_id'=>$invite_id,
+                'invited_id'=>$userId,
+                'create_time'=>date('Y-m-d H:i:s',time()),
+                'reward'=>rand(0,200),
+            ];
+
+            $invite_insert = DB::table('invite_vip')->insert($invite_data);
+
+            $update_data = [
+                'status'=>1,
+                'pay_time'=>date('Y-m-d H:i:s',time())
+            ];
+            $up_order = DB::table('invite_vip_order')->where(['order_number'=>$order_number])->update($update_data);
+
+            if( $invite_insert && $up_order){
+                $is_vip = User::where(['userid'=>$userId])->first();
+                if($is_vip->is_vip == 0){
+                    $vip_update = User::where(['userid'=>$userId])->update(['is_vip'=>1]);
+                    if($vip_update){
+                        DB::commit();
+                        return $this->withCode(200)->response('信息修改成功');
+                    }else{
+                        DB::rollback();
+                        return $this->withCode(200)->response('信息修改失败');
+                    }
+                }
+                DB::commit();
+                return $this->withCode(200)->response('信息修改成功');
+            }else{
+                DB::rollback();
+                return $this->withCode(200)->response('信息修改失败');
+            }
+        }catch (\Exception $e){
+
+            $errors = [
+                'message' => $e->getMessage(),
+                'line'    => $e->getLine()
+            ];
+
+            return $this->withCode(500)->withData($errors)->response('服务器错误');
+        }
+    }
 
     /**
      * 绑定手机号
