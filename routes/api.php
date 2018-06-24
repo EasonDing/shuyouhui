@@ -344,6 +344,8 @@ Route::group(['prefix' => '/mini/program'], function () {
 
             Route::post('/show', 'Api\MiniProgram\UsersController@show');
             Route::post('/bindPhone', 'Api\MiniProgram\UsersController@bindPhone');
+            Route::post('/bindWechat', 'Api\MiniProgram\UsersController@bindWechat');
+
             Route::post('/checkBindPhone', 'Api\MiniProgram\UsersController@checkBindPhone');
             Route::post('/updateBindPhone', 'Api\MiniProgram\UsersController@updateBindPhone');
             Route::post('/createOrder', 'Api\MiniProgram\UsersController@createOrder');
