@@ -148,7 +148,7 @@ class UsersController extends Controller
                     'userid'=> $userId,
                     'invited_id'=> $invite_id,
                     'order_type'=> '会员开通',
-                    'price'=> 9.9,//单位分
+                    'price'=> 0.01,//单位分
                     'create_time'=> date('Y-m-d H-i-s',time())
                 ];
 
