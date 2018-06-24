@@ -174,6 +174,11 @@ class UsersController extends Controller
         }
     }
 
+    /**
+     * 支付成功修改状态
+     * @param Request $request
+     * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
+     */
     public function update_order(Request $request)
     {
         try{
