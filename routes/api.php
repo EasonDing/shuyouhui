@@ -319,6 +319,8 @@ Route::any('/mini/user/check_vip', 'Api\MiniProgram\UsersController@check_vip');
 Route::any('/mini/user/invite_user', 'Api\MiniProgram\UsersController@invite_user');
 //vip购买订单创建
 Route::any('/mini/user/order_vip', 'Api\MiniProgram\UsersController@order_vip');
+//会员上传图书封面
+Route::any('/mini/user/upload_pic', 'Api\MiniProgram\UsersController@upload_pic');
 //支付成功订单修改
 Route::any('/mini/user/update_order', 'Api\MiniProgram\UsersController@update_order');
 Route::group(['prefix' => '/mini/program'], function () {

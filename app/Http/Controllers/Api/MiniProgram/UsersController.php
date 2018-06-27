@@ -134,34 +134,45 @@ class UsersController extends Controller
         try {
             $invite_id = $request->post('invited_id');
             $userId = $request->post('userId');
-            $user = Auth::user();
+
+            //$user = Auth::user();
+            //var_dump($user);exit;
+            //$userId = $user->user_id;
+            if(empty(trim($userId))){
+                $data = [
+
+                ];
+                return $this->withCode(500)->withData($data)->response('用户信息已过期！');
+            }
             $number = 'BK' . uniqid();//订单号
             //判断两个人是否已经创建过订单
-            $is_exist = DB::table('invite_vip_order')->where(['userid'=> $userId,'invited_id'=> $invite_id])->first();
-            if($is_exist){
-                #dump($is_exist);exit;
-                $data = get_object_vars($is_exist);
-                return $this->withCode(200)->withData($data)->response('订单已存在！');
-            }else{
-                $data = [
-                    'order_number'=>$number ,
-                    'userid'=> $userId,
-                    'invited_id'=> $invite_id,
-                    'order_type'=> '会员开通',
-                    'price'=> 0.01,//单位分
-                    'create_time'=> date('Y-m-d H-i-s',time())
-                ];
-
-                $result = DB::table('invite_vip_order')->insert($data);
-
-
-                if ($result) {
-
-                    return $this->withCode(200)->withData($data)->response('订单创建成功！');
+            if(!empty($invite_id)){
+                $is_exist = DB::table('invite_vip_order')->where(['userid'=> $userId,'invited_id'=> $invite_id])->first();
+                if($is_exist){
+                    $data = get_object_vars($is_exist);
+                    return $this->withCode(200)->withData($data)->response('订单已存在！');
                 }
-
-                return $this->withCode(500)->withData($data)->response('订单创建失败！');
             }
+
+            $data = [
+                'order_number'=>$number ,
+                'userid'=> $userId,
+                'invited_id'=> $invite_id ? $invite_id : 0,
+                'order_type'=> '会员开通',
+                'price'=> 0.01,//单位分
+                'create_time'=> date('Y-m-d H-i-s',time())
+            ];
+
+            $result = DB::table('invite_vip_order')->insert($data);
+
+
+            if ($result) {
+
+                return $this->withCode(200)->withData($data)->response('订单创建成功！');
+            }
+
+            return $this->withCode(500)->withData($data)->response('订单创建失败！');
+
 
 
         } catch (\Exception $e) {
@@ -290,17 +301,24 @@ class UsersController extends Controller
     public function bindWechat(Request $request)
     {
 
+//        $regex = '/^[ a-z0-9]$/i';
+//        if(!preg_match($regex, $request->get('wechat'))){
+//            return $this->withCode(500)->response('微信号错误!');
+//        }
+        $user = Auth::user();
+        //var_dump($user->user_id);exit;
         if(trim(empty($request->get('wechat')))){
             return $this->withCode(500)->response('微信号错误!');
         }
         $wechat = $request->get('wechat');
         //检测是否曾经注册过账号
         $appUser = User::Where(['weixin_account'=>$wechat])->first();
-        //var_dump($appUser);exit;
+        #var_dump($appUser);exit;
         if ($appUser) {
             return $this->withCode(500)->response('该微信号已被绑定!');
         }
-        $userId = Auth::user()->user_id;
+        $userId = $user->user_id;
+       #var_dump($userId);
         $appUser = User::where('userid', $userId)->update(['weixin_account'=> $wechat]);
         if ($appUser) {
             return $this->withCode(200)->response('微信号绑定成功');
@@ -454,8 +472,41 @@ class UsersController extends Controller
         $updateMoney = User::query()->find($user->user_id)->update([
             'money' => $appUser->money + $request->get('money'),
         ]);
-        dd($updateMoney);
+        #dd($updateMoney);
 
         return $this->withCode(200)->withData($recharge)->response('订单支付状态更新成功！');
     }
+
+    public function upload_pic(Request $request)
+    {
+
+        #var_dump($request->file('book_pic'));exit;
+        $file = $request->file('book_pic');//获取图片
+        $url_path = 'uploads/cover/'.date('Y-m-d');
+        $rule = ['jpg', 'png', 'gif','jpeg'];
+        if ($file->isValid()) {
+            $clientName = $file->getClientOriginalName();
+            #var_dump($clientName);exit;
+            $tmpName = $file->getFileName();
+            $realPath = $file->getRealPath();
+            $entension = $file->getClientOriginalExtension();
+            if (!in_array($entension, $rule)) {
+                return '图片格式为jpg,png,gif';
+            }
+            $newName = uniqid() . "." . $entension;
+            $path = $file->move($url_path, $newName);
+            $namePath = "/".$url_path . '/' . $newName;
+            if($path){
+                $data = [
+                    'path'=>$namePath
+                ];
+                return $this->withCode(200)->withData($data)->response('上传成功！');
+            }else{
+                return $this->withCode(500)->response('上传失败！');
+            }
+        }else{
+            return $this->withCode(500)->response('上传失败！');
+        }
+    }
+
 }
