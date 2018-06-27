@@ -289,42 +289,22 @@ class UsersController extends Controller
      */
     public function bindWechat(Request $request)
     {
-        $this->validate($request, [
-            'wechat'   => [
-                'required',
-                'regex:/^[a-zA-Z]([-_a-zA-Z0-9]{5,19})+$/'
-            ],
-        ], [
-            'wechat.required'   => '微信号不能为空!',
-            'wechat.regex'      => '请输入正确的微信号!'
-        ]);
 
-        $captchatKey = Configuring::CAPTCHA_KEY_MINIPROGRAM . $request->wechat;
-        //判断微信号是否正确
-        $code = Redis::get($captchatKey);
-        if (!$code) {
+        if(trim(empty($request->get('wechat')))){
             return $this->withCode(500)->response('微信号错误!');
         }
         $wechat = $request->get('wechat');
         //检测是否曾经注册过账号
-        $appUser = User::query()->where('loginName', $wechat)->orWhere('weixin_account', $wechat)->first();
+        $appUser = User::Where(['weixin_account'=>$wechat])->first();
+        //var_dump($appUser);exit;
         if ($appUser) {
-
-            $appUserId = $appUser->userid;
-            return $this->bindUser($request, $appUserId);
+            return $this->withCode(500)->response('该微信号已被绑定!');
         }
-
         $userId = Auth::user()->user_id;
-        $appUser = User::query()->where('userid', $userId)->update([
-            'loginName'     => $wechat,
-            'weixin_account'     => $wechat,
-        ]);
-
+        $appUser = User::where('userid', $userId)->update(['weixin_account'=> $wechat]);
         if ($appUser) {
-            Redis::del($captchatKey);
             return $this->withCode(200)->response('微信号绑定成功');
         }
-
         return $this->withCode(500)->response('微信号绑定失败');
 
     }
