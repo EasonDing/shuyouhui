@@ -114,11 +114,13 @@ class UsersController extends Controller
                 'u_info'=>$u_info
             ];
         }else{
-
+            $wx_account = User::where(['userid'=>$userId])->select('weixin_account')->first();
+            #var_dump($wx_account->weixin_account);exit;
             $data = [
                 'u_info'=>$u_info,
                 'number'=>$all_number,
-                'info'=>$all_info
+                'info'=>$all_info,
+                'wx_account'=>$wx_account->weixin_account
             ];
         }
         return $this->withCode(200)->withData($data)->response('success');
@@ -197,14 +199,17 @@ class UsersController extends Controller
             $invite_id = $request->post('invited_id');
             $userId = $request->post('userId');
             DB::beginTransaction();
-            $invite_data = [
-                'invite_id'=>$invite_id,
-                'invited_id'=>$userId,
-                'create_time'=>date('Y-m-d H:i:s',time()),
-                'reward'=>rand(0,200),
-            ];
+            if($invite_id ){
+                $invite_data = [
+                    'invite_id'=>$invite_id,
+                    'invited_id'=>$userId,
+                    'create_time'=>date('Y-m-d H:i:s',time()),
+                    'reward'=>rand(0,200),
+                ];
 
-            $invite_insert = DB::table('invite_vip')->insert($invite_data);
+                $invite_insert = DB::table('invite_vip')->insert($invite_data);
+            }
+
 
             $update_data = [
                 'status'=>1,
@@ -212,7 +217,7 @@ class UsersController extends Controller
             ];
             $up_order = DB::table('invite_vip_order')->where(['order_number'=>$order_number])->update($update_data);
 
-            if( $invite_insert && $up_order){
+            if( $up_order ){
                 $is_vip = User::where(['userid'=>$userId])->first();
                 if($is_vip->is_vip == 0){
                     $vip_update = User::where(['userid'=>$userId])->update(['is_vip'=>1]);
