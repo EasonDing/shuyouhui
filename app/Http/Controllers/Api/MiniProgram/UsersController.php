@@ -121,6 +121,7 @@ class UsersController extends Controller
             $all_book = count($book_num1) + count($book_num2);
             $wx_account = User::where(['userid'=>$userId])->select('weixin_account')->first();
             #var_dump($wx_account->weixin_account);exit;
+
             $data = [
                 'u_info'=>$u_info,
                 'number'=>$all_number,
