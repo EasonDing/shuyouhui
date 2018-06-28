@@ -112,6 +112,7 @@ class BookCodesController extends Controller
      */
     public function show($code)
     {
+        return;
         $bookCode = $this->repository->scopeQuery(function ($query) use($code) {
             return $query->where('code', $code);
         })->first();

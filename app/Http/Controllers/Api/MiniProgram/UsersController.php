@@ -114,11 +114,16 @@ class UsersController extends Controller
                 'u_info'=>$u_info
             ];
         }else{
-
+            $book_num1 = DB::table('vip_book')->where(['userid'=>$userId])->get();
+            $book_num2 = DB::table('T_CollectBookInfo')->where(['collectId'=>$userId])->get();
+            $book_num1 = $book_num1->toArray();
+            $book_num2 = $book_num2->toArray();
+            $all_book = count($book_num1) + count($book_num2);
             $data = [
                 'u_info'=>$u_info,
                 'number'=>$all_number,
-                'info'=>$all_info
+                'info'=>$all_info,
+                'all_book'=>$all_book
             ];
         }
         return $this->withCode(200)->withData($data)->response('success');
@@ -477,6 +482,11 @@ class UsersController extends Controller
         return $this->withCode(200)->withData($recharge)->response('订单支付状态更新成功！');
     }
 
+    /**
+     * 激活图书封面上传
+     * @param Request $request
+     * @return \Illuminate\Contracts\Routing\ResponseFactory|string|\Symfony\Component\HttpFoundation\Response
+     */
     public function upload_pic(Request $request)
     {
 
@@ -507,6 +517,72 @@ class UsersController extends Controller
         }else{
             return $this->withCode(500)->response('上传失败！');
         }
+    }
+
+    public function is_activation(Request $request)
+    {
+        $qrcode = $request->post('qrcode');
+        $is_exist = DB::table('vip_book')->where(['qrcode'=>$qrcode])->first();
+        if($is_exist){
+            return $this->withCode(500)->response('该二维码已绑定书籍！');
+        }else{
+            return $this->withCode(200)->response('该二维码未绑定书籍！');
+        }
+    }
+
+    public function upload_book(Request $request)
+    {
+        $book_name = $request->post('book_name');
+        $bookcbs = $request->post('bookcbs');
+        $bookauther = $request->post('bookauther');
+        $book_liuyan = $request->post('book_liuyan');
+        $pic_url = $request->post('pic_url');//
+        $userId = $request->post('userId');
+        $qrcode = $request->post('qrcode');
+        if(empty(trim($book_name))){
+            return $this->withCode(500)->response('书名不能为空！');
+        }
+        if(empty(trim($bookcbs))){
+            return $this->withCode(500)->response('出版社不能为空！');
+        }
+        if(empty(trim($bookauther))){
+            return $this->withCode(500)->response('作者不能为空！');
+        }
+        if(empty(trim($book_liuyan))){
+            return $this->withCode(500)->response('留言不能为空！');
+        }
+        if(empty(trim($pic_url))){
+            return $this->withCode(500)->response('请先上传封面！');
+        }
+        if(empty(trim($userId))){
+            return $this->withCode(500)->response('登录信息已过期！');
+        }
+        if(empty(trim($qrcode))){
+            return $this->withCode(500)->response('请扫描二维码进去！');
+        }
+        $data = [
+            'userid'=>$userId,
+            'title'=>$book_name,
+            'author'=>$bookauther,
+            'image'=>$_SERVER['SERVER_NAME'].$pic_url,
+            'qrcode'=>$qrcode,
+            'publisher'=>$bookcbs,
+            'summary'=>$book_liuyan,
+            'created_at'=>date('Y-m-d H:i:s',time())
+        ];
+
+        $is_exist = DB::table('vip_book')->where(['qrcode'=>$qrcode])->first();
+        if($is_exist){
+            return $this->withCode(500)->response('该二维码已绑定书籍！');
+        }
+
+        $result = DB::table('vip_book')->insert($data);
+        if($result){
+            return $this->withCode(200)->response('激活成功！');
+        }else{
+            return $this->withCode(500)->response('激活失败！');
+        }
+
     }
 
 }
