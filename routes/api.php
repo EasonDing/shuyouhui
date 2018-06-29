@@ -325,6 +325,12 @@ Route::any('/mini/user/upload_pic', 'Api\MiniProgram\UsersController@upload_pic'
 Route::any('/mini/user/is_activation', 'Api\MiniProgram\UsersController@is_activation');
 //会员激活图书
 Route::any('/mini/user/upload_book', 'Api\MiniProgram\UsersController@upload_book');
+//会员图书详情
+Route::any('/mini/user/vipBookDetail', 'Api\MiniProgram\UsersController@vipBookDetail');
+//会员图书详情页留言
+Route::any('/mini/user/add_message', 'Api\MiniProgram\UsersController@add_message');
+//会员图书详情页留言
+Route::any('/mini/user/weixin_account', 'Api\MiniProgram\UsersController@weixin_account');
 //支付成功订单修改
 Route::any('/mini/user/update_order', 'Api\MiniProgram\UsersController@update_order');
 Route::group(['prefix' => '/mini/program'], function () {

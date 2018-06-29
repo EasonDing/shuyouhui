@@ -120,14 +120,13 @@ class UsersController extends Controller
             $book_num2 = $book_num2->toArray();
             $all_book = count($book_num1) + count($book_num2);
             $wx_account = User::where(['userid'=>$userId])->select('weixin_account')->first();
-            #var_dump($wx_account->weixin_account);exit;
 
             $data = [
                 'u_info'=>$u_info,
                 'number'=>$all_number,
                 'info'=>$all_info,
                 'all_book'=>$all_book,
-                'wx_account'=>$wx_account->weixin_account
+                'wx_account'=>$wx_account
             ];
         }
         return $this->withCode(200)->withData($data)->response('success');
@@ -531,7 +530,8 @@ class UsersController extends Controller
         $qrcode = $request->post('qrcode');
         $is_exist = DB::table('vip_book')->where(['qrcode'=>$qrcode])->first();
         if($is_exist){
-            return $this->withCode(500)->response('该二维码已绑定书籍！');
+           # dump($is_exist->id);exit;
+            return $this->withCode(500)->withData(['id'=>$is_exist->id])->response('该二维码已绑定书籍！');
         }else{
             return $this->withCode(200)->response('该二维码未绑定书籍！');
         }
@@ -590,6 +590,86 @@ class UsersController extends Controller
             return $this->withCode(500)->response('激活失败！');
         }
 
+    }
+
+    public function vipBookDetail(Request $request)
+    {
+        $book_id = $request->post('book_id');
+        $userId = $request->post('userId');
+        $is_look = DB::table('vip_book_look')->where(['book_id'=>$book_id,'userid'=>$userId])->first();
+
+        if(empty($is_look)){
+
+            DB::table('vip_book_look')->insert(['userid'=>$userId,'book_id'=>$book_id,'time'=>date('Y-m-d H:i:s')]);
+        }
+        $book_info = DB::table('vip_book')->where(['id'=>$book_id])->first();
+        $u_info = DB::table('weixin_users')->where(['user_id'=>$book_info->userid])->first();
+        if($book_info){
+            $look_info = DB::table('vip_book_look')
+                ->join('T_USERINFO','vip_book_look.userid','=','T_USERINFO.userid')
+                ->where(['book_id'=>$book_id])
+                ->select('T_USERINFO.userid', 'T_USERINFO.UserLogo')
+                ->orderByRaw('vip_book_look.time desc')
+                ->get();
+            $liuyan_info = DB::table('vip_book_message')
+                ->join('T_USERINFO','vip_book_message.userid','=','T_USERINFO.userid')
+                ->where(['book_id'=>$book_id])
+                ->select('vip_book_message.message','vip_book_message.time','T_USERINFO.userid', 'T_USERINFO.UserLogo','T_USERINFO.username')
+                ->orderByRaw('vip_book_message.time desc')
+                ->get();
+            $look_info = $look_info->toArray();
+            $liuyan_info = $liuyan_info->toArray();
+            $data = [
+                'book_info'=>$book_info,
+                'look_info'=>$look_info,
+                'liuyan_info'=>$liuyan_info,
+                'u_info'=>$u_info
+            ];
+            return $this->withCode(200)->withData($data)->response('详情返回成功！');
+        }else{
+            return $this->withCode(500)->response('该图书不存在！');
+        }
+    }
+
+    public function add_message(Request $request)
+    {
+        $book_id = $request->post('book_id');
+        $user_id = $request->post('userId');
+        $message = $request->post('message');
+        if(empty(trim($message))){
+            return $this->withCode(500)->response('请输入留言内容！');
+        }
+        $data = [
+            'userid'=>$user_id,
+            'message'=>$message,
+            'book_id'=>$book_id,
+            'time'=>date('Y-m-d H:i:s',time())
+        ];
+        $result = DB::table('vip_book_message')->insert($data);
+        if($result){
+            $liuyan_info = DB::table('vip_book_message')
+                ->join('T_USERINFO','vip_book_message.userid','=','T_USERINFO.userid')
+                ->where(['book_id'=>$book_id])
+                ->select('vip_book_message.message','vip_book_message.time','T_USERINFO.userid', 'T_USERINFO.UserLogo','T_USERINFO.username')
+                ->orderByRaw('vip_book_message.time desc')
+                ->get();
+            $liuyan_info = $liuyan_info->toArray();
+            return $this->withCode(200)->withData($liuyan_info)->response('留言成功！');
+        }else{
+            return $this->withCode(500)->response('留言失败！');
+        }
+    }
+
+    public function weixin_account(Request $request)
+    {
+        $userId = $request->post('UserId');
+        $info = User::where(['userid'=>$userId])->first();
+
+        if($info){
+            return $this->withCode(200)->withData(['wx_account'=>$info->weixin_account])->response('获取成功！');
+        }else{
+            return $this->withCode(500)->response('获取绑定微信失败！');
+        }
     }
 
 }
