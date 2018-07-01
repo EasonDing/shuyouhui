@@ -167,7 +167,7 @@ class UsersController extends Controller
                 'userid'=> $userId,
                 'invited_id'=> $invite_id ? $invite_id : 0,
                 'order_type'=> '会员开通',
-                'price'=> 0.01,//单位分
+                'price'=> 9.90,//单位分
                 'create_time'=> date('Y-m-d H-i-s',time())
             ];
 
@@ -571,7 +571,7 @@ class UsersController extends Controller
             'userid'=>$userId,
             'title'=>$book_name,
             'author'=>$bookauther,
-            'image'=>$_SERVER['SERVER_NAME'].$pic_url,
+            'image'=>"http://".$_SERVER['SERVER_NAME'].$pic_url,
             'qrcode'=>$qrcode,
             'publisher'=>$bookcbs,
             'summary'=>$book_liuyan,
@@ -664,9 +664,21 @@ class UsersController extends Controller
     {
         $userId = $request->post('UserId');
         $info = User::where(['userid'=>$userId])->first();
+        $info = $info->toArray();
+        if($info['weixin_account']){
+            return $this->withCode(200)->withData(['wx_account'=>$info['weixin_account']])->response('获取成功！');
+        }else{
+            return $this->withCode(500)->response('获取绑定微信失败！');
+        }
+    }
 
-        if($info){
-            return $this->withCode(200)->withData(['wx_account'=>$info->weixin_account])->response('获取成功！');
+    public function phone_account(Request $request)
+    {
+        $userId = $request->post('UserId');
+        $info = User::where(['userid'=>$userId])->first();
+        $info = $info->toArray();
+        if($info['bindPhone']){
+            return $this->withCode(200)->withData(['wx_account'=>$info['weixin_account']])->response('获取成功！');
         }else{
             return $this->withCode(500)->response('获取绑定微信失败！');
         }

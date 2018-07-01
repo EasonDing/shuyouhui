@@ -331,6 +331,8 @@ Route::any('/mini/user/vipBookDetail', 'Api\MiniProgram\UsersController@vipBookD
 Route::any('/mini/user/add_message', 'Api\MiniProgram\UsersController@add_message');
 //会员图书详情页留言
 Route::any('/mini/user/weixin_account', 'Api\MiniProgram\UsersController@weixin_account');
+//会员图书详情页留言
+Route::any('/mini/user/phone_account', 'Api\MiniProgram\UsersController@phone_account');
 //支付成功订单修改
 Route::any('/mini/user/update_order', 'Api\MiniProgram\UsersController@update_order');
 Route::group(['prefix' => '/mini/program'], function () {
