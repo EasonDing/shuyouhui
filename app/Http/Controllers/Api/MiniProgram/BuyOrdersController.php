@@ -49,6 +49,7 @@ class BuyOrdersController extends Controller
      */
     public function index(Request $request)
     {
+
         $user = Auth::user();
         $this->repository->pushCriteria(app('Prettus\Repository\Criteria\RequestCriteria'));
         $this->repository->setPresenter(BuyOrderPresenter::class);
@@ -81,6 +82,7 @@ class BuyOrdersController extends Controller
 
             $request->offsetSet('user_id', $user->user_id);
             $request->offsetSet('number', $number);
+            $request->offsetSet('pay_status', 1);
             $request->offsetSet('pay_time', Carbon::now());
             $buyOrder = $this->repository->create($request->all());
 
